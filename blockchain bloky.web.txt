@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="cs">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kryptoměnový Blockchain Simulátor</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            min-height: 100%;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        html {
+            height: 100%;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            margin: 0 0 0.5rem 0;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            margin: 0;
+        }
+        
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 968px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card h2 {
+            margin: 0 0 1.5rem 0;
+            color: #1e293b;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .wallets {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .wallet {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .wallet::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+        
+        .wallet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .wallet-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .wallet-balance {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+        
+        .wallet-address {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            position: relative;
+        }
+        
+        .transaction-form {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .form-group {
+            display: grid;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+        
+        .form-group select,
+        .form-group input {
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .mining-section {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: white;
+            margin-top: 1rem;
+        }
+        
+        .mining-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .mining-stat {
+            text-align: center;
+        }
+        
+        .mining-stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+        
+        .mining-stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+        
+        .pending-transactions {
+            background: #fef3c7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .pending-transactions h4 {
+            margin: 0 0 0.75rem 0;
+            color: #92400e;
+            font-size: 1rem;
+        }
+        
+        .pending-tx-list {
+            display: grid;
+            gap: 0.5rem;
+        }
+        
+        .pending-tx {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .blockchain-view {
+            grid-column: 1 / -1;
+        }
+        
+        .blocks-container {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .block {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-left: 6px solid #cbd5e0;
+            transition: all 0.3s;
+        }
+        
+        .block.valid {
+            border-left-color: #10b981;
+        }
+        
+        .block.invalid {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .block.mining {
+            animation: pulse 1.5s infinite;
+            border-left-color: #f59e0b;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+        
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        
+        .block-number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #667eea;
+        }
+        
+        .block-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            padding: 0.375rem 0.875rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+        
+        .badge-valid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-invalid {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .badge-mining {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-reward {
+            background: #ddd6fe;
+            color: #5b21b6;
+        }
+        
+        .block-info {
+            display: grid;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .info-row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 0.75rem;
+            align-items: start;
+        }
+        
+        .info-label {
+            font-weight: 700;
+            color: #475569;
+        }
+        
+        .info-value {
+            color: #1e293b;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            font-size: 0.9rem;
+        }
+        
+        .transactions-in-block {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .transactions-in-block h4 {
+            margin: 0 0 0.75rem 0;
+            color: #334155;
+            font-size: 1rem;
+        }
+        
+        .tx-item {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #667eea;
+            font-size: 0.9rem;
+        }
+        
+        .tx-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .tx-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .tx-amount {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #3b82f6;
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <header class="header">
+    <h1 id="main-title">💎 Kryptoměnový Blockchain Simulátor</h1>
+    <p id="subtitle">Naučte se, jak fungují kryptoměny, transakce a těžba blockchainu</p>
+   </header>
+   <div class="stats-grid">
+    <div class="stat-card">
+     <div class="stat-value" id="total-supply">
+      0
+     </div>
+     <div class="stat-label" id="supply-label">
+      Celková nabídka COIN
+     </div>
+    </div>
+    <div class="stat-card">
+     <div class="stat-value" id="total-blocks">
+      1
+     </div>
+     <div class="stat-label">
+      Bloků v řetězci
+     </div>
+    </div>
+    <div class="stat-card">
+     <div class="stat-value" id="pending-count">
+      0
+     </div>
+     <div class="stat-label">
+      Čekající transakce
+     </div>
+    </div>
+    <div class="stat-card">
+     <div class="stat-value" id="difficulty">
+      3
+     </div>
+     <div class="stat-label">
+      Obtížnost těžby
+     </div>
+    </div>
+   </div>
+   <div id="alert-container"></div>
+   <div class="game-layout">
+    <div class="card">
+     <h2>👛 Peněženky</h2>
+     <div class="wallets" id="wallets"></div>
+    </div>
+    <div class="card">
+     <h2>💸 Nová transakce</h2>
+     <form class="transaction-form" id="transaction-form">
+      <div class="form-group"><label for="from-wallet">Z peněženky:</label> <select id="from-wallet" required> <option value="">Vyberte peněženku</option> </select>
+      </div>
+      <div class="form-group"><label for="to-wallet">Do peněženky:</label> <select id="to-wallet" required> <option value="">Vyberte peněženku</option> </select>
+      </div>
+      <div class="form-group"><label for="amount">Částka:</label> <input type="number" id="amount" min="0.01" step="0.01" placeholder="0.00" required>
+      </div><button type="submit" class="btn btn-primary" id="send-btn">📤 Odeslat transakci</button>
+     </form>
+     <div class="mining-section">
+      <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem;">⛏️ Těžba bloků</h3>
+      <div class="pending-transactions" id="pending-section" style="display: none;">
+       <h4>⏳ Čekající transakce:</h4>
+       <div class="pending-tx-list" id="pending-list"></div>
+      </div>
+      <div class="mining-info">
+       <div class="mining-stat">
+        <div class="mining-stat-value" id="mining-reward">
+         50
+        </div>
+        <div class="mining-stat-label" id="reward-label">
+         Odměna za blok
+        </div>
+       </div>
+       <div class="mining-stat">
+        <div class="mining-stat-value" id="next-miner">
+         -
+        </div>
+        <div class="mining-stat-label">
+         Další těžař
+        </div>
+       </div>
+      </div><button class="btn btn-success" id="mine-btn" style="width: 100%;">⛏️ Vytěžit nový blok</button>
+     </div>
+    </div>
+   </div>
+   <div class="card blockchain-view">
+    <h2>🔗 Blockchain</h2>
+    <div class="blocks-container" id="blockchain"></div>
+   </div>
+  </div>
+  <script>
+        const defaultConfig = {
+            main_title: "💎 Kryptoměnový Blockchain Simulátor",
+            subtitle: "Naučte se, jak fungují kryptoměny, transakce a těžba blockchainu",
+            send_button: "📤 Odeslat transakci",
+            mine_button: "⛏️ Vytěžit nový blok",
+            currency_name: "COIN"
+        };
+
+        let config = { ...defaultConfig };
+
+        class Transaction {
+            constructor(fromAddress, toAddress, amount) {
+                this.fromAddress = fromAddress;
+                this.toAddress = toAddress;
+                this.amount = amount;
+                this.timestamp = Date.now();
+            }
+        }
+
+        class Block {
+            constructor(timestamp, transactions, previousHash = '') {
+                this.timestamp = timestamp;
+                this.transactions = transactions;
+                this.previousHash = previousHash;
+                this.nonce = 0;
+                this.hash = '';
+                this.miner = null;
+            }
+
+            async calculateHash() {
+                const crypto = window.crypto || window.msCrypto;
+                const data = this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce + (this.miner || '');
+                
+                const encoder = new TextEncoder();
+                const dataBuffer = encoder.encode(data);
+                
+                return crypto.subtle.digest('SHA-256', dataBuffer).then(hashBuffer => {
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    return hashHex;
+                });
+            }
+
+            async mineBlock(difficulty, minerAddress) {
+                this.miner = minerAddress;
+                const target = '0'.repeat(difficulty);
+                
+                while (true) {
+                    this.hash = await this.calculateHash();
+                    if (this.hash.substring(0, difficulty) === target) {
+                        break;
+                    }
+                    this.nonce++;
+                    
+                    if (this.nonce % 500 === 0) {
+                        await new Promise(resolve => setTimeout(resolve, 0));
+                    }
+                }
+            }
+
+            async isValid(difficulty) {
+                const calculatedHash = await this.calculateHash();
+                const target = '0'.repeat(difficulty);
+                return calculatedHash === this.hash && this.hash.substring(0, difficulty) === target;
+            }
+        }
+
+        class Blockchain {
+            constructor() {
+                this.chain = [this.createGenesisBlock()];
+                this.difficulty = 3;
+                this.pendingTransactions = [];
+                this.miningReward = 50;
+            }
+
+            createGenesisBlock() {
+                const block = new Block(Date.now(), [], "0");
+                block.hash = "0000000000000000000000000000000000000000000000000000000000000000";
+                return block;
+            }
+
+            getLatestBlock() {
+                return this.chain[this.chain.length - 1];
+            }
+
+            async minePendingTransactions(miningRewardAddress) {
+                const rewardTx = new Transaction(null, miningRewardAddress, this.miningReward);
+                this.pendingTransactions.push(rewardTx);
+
+                const block = new Block(Date.now(), this.pendingTransactions, this.getLatestBlock().hash);
+                await block.mineBlock(this.difficulty, miningRewardAddress);
+
+                this.chain.push(block);
+                this.pendingTransactions = [];
+            }
+
+            createTransaction(transaction) {
+                if (!transaction.fromAddress || !transaction.toAddress) {
+                    throw new Error('Transakce musí obsahovat odesílatele i příjemce');
+                }
+
+                if (transaction.amount <= 0) {
+                    throw new Error('Částka musí být větší než 0');
+                }
+
+                const balance = this.getBalanceOfAddress(transaction.fromAddress);
+                if (balance < transaction.amount) {
+                    throw new Error('Nedostatečný zůstatek');
+                }
+
+                this.pendingTransactions.push(transaction);
+            }
+
+            getBalanceOfAddress(address) {
+                let balance = 0;
+
+                for (const block of this.chain) {
+                    for (const trans of block.transactions) {
+                        if (trans.fromAddress === address) {
+                            balance -= trans.amount;
+                        }
+
+                        if (trans.toAddress === address) {
+                            balance += trans.amount;
+                        }
+                    }
+                }
+
+                for (const trans of this.pendingTransactions) {
+                    if (trans.fromAddress === address) {
+                        balance -= trans.amount;
+                    }
+                }
+
+                return balance;
+            }
+
+            async isChainValid() {
+                for (let i = 1; i < this.chain.length; i++) {
+                    const currentBlock = this.chain[i];
+                    const previousBlock = this.chain[i - 1];
+
+                    const isCurrentValid = await currentBlock.isValid(this.difficulty);
+                    if (!isCurrentValid) {
+                        return false;
+                    }
+
+                    if (currentBlock.previousHash !== previousBlock.hash) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            getTotalSupply() {
+                let supply = 0;
+                for (const block of this.chain) {
+                    for (const trans of block.transactions) {
+                        if (trans.fromAddress === null) {
+                            supply += trans.amount;
+                        }
+                    }
+                }
+                return supply;
+            }
+        }
+
+        const wallets = [
+            { name: 'Alice', address: 'alice_wallet_0x1a2b3c', emoji: '👩' },
+            { name: 'Bob', address: 'bob_wallet_0x4d5e6f', emoji: '👨' },
+            { name: 'Charlie', address: 'charlie_wallet_0x7g8h9i', emoji: '🧑' }
+        ];
+
+        let blockchain = new Blockchain();
+        let currentMinerIndex = 0;
+
+        // Inicializace - každá peněženka dostane 10 coinů
+        function initializeWallets() {
+            wallets.forEach(wallet => {
+                const initialTx = new Transaction(null, wallet.address, 10);
+                blockchain.chain[0].transactions.push(initialTx);
+            });
+        }
+
+        initializeWallets();
+
+        function showAlert(message, type = 'info') {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 4000);
+        }
+
+        function renderWallets() {
+            const container = document.getElementById('wallets');
+            container.innerHTML = '';
+
+            wallets.forEach(wallet => {
+                const balance = blockchain.getBalanceOfAddress(wallet.address);
+                const walletEl = document.createElement('div');
+                walletEl.className = 'wallet';
+                walletEl.innerHTML = `
+                    <div class="wallet-header">
+                        <div class="wallet-name">${wallet.emoji} ${wallet.name}</div>
+                    </div>
+                    <div class="wallet-balance">${balance.toFixed(2)} ${config.currency_name || defaultConfig.currency_name}</div>
+                    <div class="wallet-address">${wallet.address}</div>
+                `;
+                container.appendChild(walletEl);
+            });
+        }
+
+        function renderWalletSelects() {
+            const fromSelect = document.getElementById('from-wallet');
+            const toSelect = document.getElementById('to-wallet');
+            
+            const fromValue = fromSelect.value;
+            const toValue = toSelect.value;
+
+            fromSelect.innerHTML = '<option value="">Vyberte peněženku</option>';
+            toSelect.innerHTML = '<option value="">Vyberte peněženku</option>';
+
+            wallets.forEach(wallet => {
+                const balance = blockchain.getBalanceOfAddress(wallet.address);
+                fromSelect.innerHTML += `<option value="${wallet.address}">${wallet.emoji} ${wallet.name} (${balance.toFixed(2)} ${config.currency_name || defaultConfig.currency_name})</option>`;
+                toSelect.innerHTML += `<option value="${wallet.address}">${wallet.emoji} ${wallet.name}</option>`;
+            });
+
+            fromSelect.value = fromValue;
+            toSelect.value = toValue;
+        }
+
+        function renderPendingTransactions() {
+            const section = document.getElementById('pending-section');
+            const list = document.getElementById('pending-list');
+
+            if (blockchain.pendingTransactions.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            list.innerHTML = '';
+
+            blockchain.pendingTransactions.forEach(tx => {
+                const fromWallet = wallets.find(w => w.address === tx.fromAddress);
+                const toWallet = wallets.find(w => w.address === tx.toAddress);
+                
+                const txEl = document.createElement('div');
+                txEl.className = 'pending-tx';
+                txEl.innerHTML = `
+                    <span>${fromWallet ? fromWallet.emoji + ' ' + fromWallet.name : 'Systém'} → ${toWallet ? toWallet.emoji + ' ' + toWallet.name : 'Neznámý'}</span>
+                    <strong>${tx.amount.toFixed(2)} ${config.currency_name || defaultConfig.currency_name}</strong>
+                `;
+                list.appendChild(txEl);
+            });
+        }
+
+        async function renderBlockchain() {
+            const container = document.getElementById('blockchain');
+            container.innerHTML = '';
+
+            for (let i = blockchain.chain.length - 1; i >= 0; i--) {
+                const block = blockchain.chain[i];
+                const isValid = await block.isValid(blockchain.difficulty);
+                
+                const blockEl = document.createElement('div');
+                blockEl.className = `block ${isValid ? 'valid' : 'invalid'}`;
+                
+                let transactionsHtml = '';
+                if (block.transactions.length > 0) {
+                    transactionsHtml = '<div class="transactions-in-block"><h4>💳 Transakce v bloku:</h4>';
+                    block.transactions.forEach(tx => {
+                        const fromWallet = wallets.find(w => w.address === tx.fromAddress);
+                        const toWallet = wallets.find(w => w.address === tx.toAddress);
+                        const isReward = tx.fromAddress === null;
+                        
+                        transactionsHtml += `
+                            <div class="tx-item">
+                                <div class="tx-details">
+                                    <span>${isReward ? '🎁 Odměna za těžbu' : (fromWallet ? fromWallet.emoji + ' ' + fromWallet.name : 'Neznámý')} → ${toWallet ? toWallet.emoji + ' ' + toWallet.name : 'Neznámý'}</span>
+                                    <span class="tx-amount">${tx.amount.toFixed(2)} ${config.currency_name || defaultConfig.currency_name}</span>
+                                </div>
+                                <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">
+                                    ${new Date(tx.timestamp).toLocaleString('cs-CZ')}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    transactionsHtml += '</div>';
+                }
+
+                const minerWallet = wallets.find(w => w.address === block.miner);
+                
+                blockEl.innerHTML = `
+                    <div class="block-header">
+                        <div class="block-number">Blok #${i}</div>
+                        <div class="block-badges">
+                            <span class="badge ${isValid ? 'badge-valid' : 'badge-invalid'}">
+                                ${isValid ? '✓ Platný' : '✗ Neplatný'}
+                            </span>
+                            ${block.miner ? `<span class="badge badge-reward">⛏️ Vytěžil: ${minerWallet ? minerWallet.emoji + ' ' + minerWallet.name : 'Neznámý'}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="block-info">
+                        <div class="info-row">
+                            <div class="info-label">📅 Čas:</div>
+                            <div class="info-value">${new Date(block.timestamp).toLocaleString('cs-CZ')}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">🔗 Předchozí hash:</div>
+                            <div class="info-value">${block.previousHash.substring(0, 32)}...</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">🔐 Hash:</div>
+                            <div class="info-value">${block.hash.substring(0, 32)}...</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">🎲 Nonce:</div>
+                            <div class="info-value">${block.nonce.toLocaleString('cs-CZ')}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">💳 Transakcí:</div>
+                            <div class="info-value">${block.transactions.length}</div>
+                        </div>
+                    </div>
+                    ${transactionsHtml}
+                `;
+                container.appendChild(blockEl);
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('total-supply').textContent = blockchain.getTotalSupply().toFixed(2);
+            document.getElementById('total-blocks').textContent = blockchain.chain.length;
+            document.getElementById('pending-count').textContent = blockchain.pendingTransactions.length;
+            document.getElementById('difficulty').textContent = blockchain.difficulty;
+            
+            const nextMiner = wallets[currentMinerIndex];
+            document.getElementById('next-miner').textContent = nextMiner.emoji + ' ' + nextMiner.name;
+            document.getElementById('mining-reward').textContent = blockchain.miningReward;
+        }
+
+        document.getElementById('transaction-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const fromAddress = document.getElementById('from-wallet').value;
+            const toAddress = document.getElementById('to-wallet').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (!fromAddress || !toAddress) {
+                showAlert('Vyberte odesílatele i příjemce', 'error');
+                return;
+            }
+
+            if (fromAddress === toAddress) {
+                showAlert('Nemůžete poslat peníze sami sobě', 'error');
+                return;
+            }
+
+            try {
+                const transaction = new Transaction(fromAddress, toAddress, amount);
+                blockchain.createTransaction(transaction);
+                
+                const fromWallet = wallets.find(w => w.address === fromAddress);
+                const toWallet = wallets.find(w => w.address === toAddress);
+                showAlert(`✅ Transakce přidána: ${fromWallet.name} → ${toWallet.name} (${amount.toFixed(2)} ${config.currency_name || defaultConfig.currency_name})`, 'success');
+                
+                document.getElementById('amount').value = '';
+                renderPendingTransactions();
+                renderWallets();
+                renderWalletSelects();
+                updateStats();
+            } catch (error) {
+                showAlert('❌ ' + error.message, 'error');
+            }
+        });
+
+        document.getElementById('mine-btn').addEventListener('click', async () => {
+            if (blockchain.pendingTransactions.length === 0) {
+                showAlert('⚠️ Žádné transakce k vytěžení. Nejprve vytvořte transakci!', 'info');
+                return;
+            }
+
+            const btn = document.getElementById('mine-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Těžím blok...';
+
+            const miner = wallets[currentMinerIndex];
+            currentMinerIndex = (currentMinerIndex + 1) % wallets.length;
+
+            try {
+                await blockchain.minePendingTransactions(miner.address);
+                showAlert(`🎉 Blok úspěšně vytěžen! ${miner.emoji} ${miner.name} získal ${blockchain.miningReward} ${config.currency_name || defaultConfig.currency_name}`, 'success');
+                
+                renderWallets();
+                renderWalletSelects();
+                renderPendingTransactions();
+                await renderBlockchain();
+                updateStats();
+            } catch (error) {
+                showAlert('❌ Chyba při těžbě: ' + error.message, 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = config.mine_button || defaultConfig.mine_button;
+        });
+
+        async function onConfigChange(newConfig) {
+            config = { ...config, ...newConfig };
+            
+            document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
+            document.getElementById('subtitle').textContent = config.subtitle || defaultConfig.subtitle;
+            document.getElementById('send-btn').textContent = config.send_button || defaultConfig.send_button;
+            document.getElementById('mine-btn').textContent = config.mine_button || defaultConfig.mine_button;
+            
+            const currencyName = config.currency_name || defaultConfig.currency_name;
+            document.getElementById('supply-label').textContent = `Celková nabídka ${currencyName}`;
+            document.getElementById('reward-label').textContent = `Odměna za blok (${currencyName})`;
+            
+            renderWallets();
+            renderWalletSelects();
+            renderPendingTransactions();
+            await renderBlockchain();
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["main_title", config.main_title || defaultConfig.main_title],
+                ["subtitle", config.subtitle || defaultConfig.subtitle],
+                ["send_button", config.send_button || defaultConfig.send_button],
+                ["mine_button", config.mine_button || defaultConfig.mine_button],
+                ["currency_name", config.currency_name || defaultConfig.currency_name]
+            ]);
+        }
+
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+        }
+
+        renderWallets();
+        renderWalletSelects();
+        renderPendingTransactions();
+        renderBlockchain();
+        updateStats();
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99cce0b9223bb392',t:'MTc2Mjg1NDU0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
